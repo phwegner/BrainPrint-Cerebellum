@@ -10,6 +10,61 @@ from lapy import TriaMesh
 from .utils.utils import run_shell_command
 
 
+def create_cereb_surface(
+    subject_dir: Path, destination: Path, indices: List[int]
+) -> Path:
+    
+
+    cerebseg_path = subject_dir / "mri/cerebellum.CerebNet.nii.gz"
+    norm_path = subject_dir / "mri/norm.mgz"
+    temp_name = "temp/aseg.{uid}".format(uid=uuid.uuid4())
+    indices_mask = destination / f"{temp_name}.mgz"
+    # binarize on selected labels (creates temp indices_mask)
+    # always binarize first, otherwise pretess may scale aseg if labels are
+    # larger than 255 (e.g. aseg+aparc, bug in mri_pretess?)
+    binarize_template = "mri_binarize --i {source} --match {match} --o {destination}"
+    binarize_command = binarize_template.format(
+        source=cerebseg_path, match=" ".join(indices), destination=indices_mask
+    )
+    run_shell_command(binarize_command)
+
+    label_value = "1"
+    # if norm exist, fix label (pretess)
+    if norm_path.is_file():
+        pretess_template = (
+            "mri_pretess {source} {label_value} {norm_path} {destination}"
+        )
+        pretess_command = pretess_template.format(
+            source=indices_mask,
+            label_value=label_value,
+            norm_path=norm_path,
+            destination=indices_mask,
+        )
+        run_shell_command(pretess_command)
+
+    # runs marching cube to extract surface
+    surface_name = "{name}.surf".format(name=temp_name)
+    surface_path = destination / surface_name
+    extraction_template = "mri_mc {source} {label_value} {destination}"
+    extraction_command = extraction_template.format(
+        source=indices_mask, label_value=label_value, destination=surface_path
+    )
+    run_shell_command(extraction_command)
+
+    # convert to vtk
+    relative_path = "surfaces/aseg.final.{indices}.vtk".format(
+        indices="_".join(indices)
+    )
+    conversion_destination = destination / relative_path
+    conversion_template = "mris_convert {source} {destination}"
+    conversion_command = conversion_template.format(
+        source=surface_path, destination=conversion_destination
+    )
+    run_shell_command(conversion_command)
+
+    return conversion_destination
+
+
 def create_aseg_surface(
     subject_dir: Path, destination: Path, indices: List[int]
 ) -> Path:
@@ -80,6 +135,50 @@ def create_aseg_surface(
     return conversion_destination
 
 
+## Add functionality for cerebellum 
+
+def create_cereb_surfaces(subject_dir: Path, destination: Path) -> Dict[str, Path]:
+   
+    cereb_labels = {
+        'Cbm_Left-Cerebellum-White-Matter': ['7'],
+        'Cbm_Left-Cerebellum-Cortex': ['8'],
+        'Cbm_Right-Cerebellum-White-Matter': ['46'],
+        'Cbm_Right-Cerebellum-Cortex': ['47'],
+        'Cbm_Left_I_IV': ['601'],
+        'Cbm_Right_I_IV': ['602'],
+        'Cbm_Left_V': ['603'],
+        'Cbm_Right_V': ['604'],
+        'Cbm_Left_VI': ['605'],
+        'Cbm_Vermis_VI': ['606'],
+        'Cbm_Right_VI': ['607'],
+        'Cbm_Left_CrusI': ['608'],
+        'Cbm_Right_CrusI': ['610'],
+        'Cbm_Left_CrusII': ['611'],
+        'Cbm_Right_CrusII': ['613'],
+        'Cbm_Left_VIIb': ['614'],
+        'Cbm_Right_VIIb': ['616'],
+        'Cbm_Left_VIIIa': ['617'],
+        'Cbm_Right_VIIIa': ['619'],
+        'Cbm_Left_VIIIb': ['620'],
+        'Cbm_Right_VIIIb': ['622'],
+        'Cbm_Left_IX': ['623'],
+        'Cbm_Vermis_IX': ['624'],
+        'Cbm_Right_IX': ['625'],
+        'Cbm_Left_X': ['626'],
+        'Cbm_Vermis_X': ['627'],
+        'Cbm_Right_X': ['628'],
+        'Cbm_Vermis_VII': ['630'],
+        'Cbm_Vermis_VIII': ['631'],
+        'Cbm_Vermis': ['632'],
+    }
+
+    return {
+        label: create_cereb_surface(subject_dir, destination, indices)
+        for label, indices in cereb_labels.items()
+    }
+
+
+
 def create_aseg_surfaces(subject_dir: Path, destination: Path) -> Dict[str, Path]:
     # Define aseg labels
 
@@ -147,9 +246,12 @@ def create_cortical_surfaces(subject_dir: Path, destination: Path) -> Dict[str, 
 
 
 def create_surfaces(
-    subject_dir: Path, destination: Path, skip_cortex: bool = False
+    subject_dir: Path, destination: Path, skip_cortex: bool = False, skip_cerebellum: bool = False
 ) -> Dict[str, Path]:
     surfaces = create_aseg_surfaces(subject_dir, destination)
+    if not skip_cerebellum:
+        surfaces.update(create_cereb_surfaces(subject_dir, destination))
+    surfaces.update(create_cereb_surfaces(subject_dir, destination))
     if not skip_cortex:
         cortical_surfaces = create_cortical_surfaces(subject_dir, destination)
         surfaces.update(cortical_surfaces)

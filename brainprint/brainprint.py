@@ -197,6 +197,7 @@ def run_brainprint(
     destination: Path = None,
     num: int = 50,
     skip_cortex: bool = False,
+    skip_cerebellum: bool = False,
     keep_eigenvectors: bool = False,
     norm: str = "none",
     reweight: bool = False,
@@ -257,7 +258,7 @@ def run_brainprint(
         destination=destination,
     )
 
-    surfaces = create_surfaces(subject_dir, destination, skip_cortex=skip_cortex)
+    surfaces = create_surfaces(subject_dir, destination, skip_cortex=skip_cortex, skip_cerebellum=skip_cerebellum)
     eigenvalues, eigenvectors = compute_brainprint(
         surfaces,
         num=num,
@@ -295,6 +296,7 @@ class Brainprint:
         subjects_dir: Path,
         num: int = 50,
         skip_cortex: bool = False,
+        skip_cerebellum: bool = False,
         keep_eigenvectors: bool = False,
         norm: str = "none",
         reweight: bool = False,
@@ -320,6 +322,8 @@ class Brainprint:
             Whether to reweight eigenvalues or not, by default False
         skip_cortex : bool, optional
             _description_, by default False
+        skip_cerebellum : bool, optional
+            _description_, by default False
         keep_eigenvectors : bool, optional
             Whether to also return eigenvectors or not, by default False
         asymmetry : bool, optional
@@ -340,6 +344,7 @@ class Brainprint:
         self.num = num
         self.norm = norm
         self.skip_cortex = skip_cortex
+        self.skip_cerebellum = skip_cerebellum
         self.reweight = reweight
         self.keep_eigenvectors = keep_eigenvectors
         self.asymmetry = asymmetry
@@ -367,7 +372,7 @@ class Brainprint:
         )
 
         surfaces = create_surfaces(
-            subject_dir, destination, skip_cortex=self.skip_cortex
+            subject_dir, destination, skip_cortex=self.skip_cortex, skip_cerebellum=self.skip_cerebellum
         )
         self._eigenvalues, self._eigenvectors = compute_brainprint(
             surfaces,
@@ -383,6 +388,7 @@ class Brainprint:
                 self._eigenvalues,
                 distance=self.asymmetry_distance,
                 skip_cortex=self.skip_cortex,
+                skip_cerebellum=self.skip_cerebellum,
             )
 
         self.cleanup(destination=destination)

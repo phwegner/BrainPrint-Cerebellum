@@ -61,6 +61,14 @@ def parse_options():
         required=False,
     )
     optional.add_argument(
+        "--skipcerebellum",
+        dest="skip_cerebellum",
+        help=help_text.SKIP_CEREBELLUM,
+        default=False,
+        action="store_true",
+        required=False,
+    )
+    optional.add_argument(
         "--norm",
         dest="norm",
         help=help_text.NORM,
