@@ -47,6 +47,7 @@ Processing directives:
   --num <num>      Number of eigenvalues/vectors to compute (default: 50)
   --evec           Switch on eigenvector computation (default: off)
   --skipcortex     Skip cortical surfaces (default: off)
+  --kipcerebellum  Skip cerebellum (default: off)
   --norm <surface|volume|geometry|none>
                    Switch on eigenvalue normalization; will be either surface,
                    volume, or determined by the geometry of the object. Use

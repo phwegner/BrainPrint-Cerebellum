@@ -17,7 +17,7 @@ def create_cereb_surface(
 
     cerebseg_path = subject_dir / "mri/cerebellum.CerebNet.nii.gz"
     norm_path = subject_dir / "mri/norm.mgz"
-    temp_name = "temp/aseg.{uid}".format(uid=uuid.uuid4())
+    temp_name = "temp/cereb.{uid}".format(uid=uuid.uuid4())
     indices_mask = destination / f"{temp_name}.mgz"
     # binarize on selected labels (creates temp indices_mask)
     # always binarize first, otherwise pretess may scale aseg if labels are
@@ -52,7 +52,7 @@ def create_cereb_surface(
     run_shell_command(extraction_command)
 
     # convert to vtk
-    relative_path = "surfaces/aseg.final.{indices}.vtk".format(
+    relative_path = "surfaces/cereb.final.{indices}.vtk".format(
         indices="_".join(indices)
     )
     conversion_destination = destination / relative_path
@@ -140,10 +140,10 @@ def create_aseg_surface(
 def create_cereb_surfaces(subject_dir: Path, destination: Path) -> Dict[str, Path]:
    
     cereb_labels = {
-        'Cbm_Left-Cerebellum-White-Matter': ['7'],
-        'Cbm_Left-Cerebellum-Cortex': ['8'],
-        'Cbm_Right-Cerebellum-White-Matter': ['46'],
-        'Cbm_Right-Cerebellum-Cortex': ['47'],
+        #'Cbm_Left-Cerebellum-White-Matter': ['7'],
+        #'Cbm_Left-Cerebellum-Cortex': ['8'],
+        #'Cbm_Right-Cerebellum-White-Matter': ['46'],
+        #'Cbm_Right-Cerebellum-Cortex': ['47'],
         'Cbm_Left_I_IV': ['601'],
         'Cbm_Right_I_IV': ['602'],
         'Cbm_Left_V': ['603'],
@@ -169,7 +169,7 @@ def create_cereb_surfaces(subject_dir: Path, destination: Path) -> Dict[str, Pat
         'Cbm_Right_X': ['628'],
         'Cbm_Vermis_VII': ['630'],
         'Cbm_Vermis_VIII': ['631'],
-        'Cbm_Vermis': ['632'],
+        'Cbm_Vermis': ['631', '630', '627', '624', '606'],
     }
 
     return {
@@ -251,7 +251,6 @@ def create_surfaces(
     surfaces = create_aseg_surfaces(subject_dir, destination)
     if not skip_cerebellum:
         surfaces.update(create_cereb_surfaces(subject_dir, destination))
-    surfaces.update(create_cereb_surfaces(subject_dir, destination))
     if not skip_cortex:
         cortical_surfaces = create_cortical_surfaces(subject_dir, destination)
         surfaces.update(cortical_surfaces)

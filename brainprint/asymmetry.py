@@ -57,8 +57,8 @@ def compute_asymmetry(
     ]
 
     structures_left_right_cerebellum = [
-        ("Cbm_Left-Cerebellum-White-Matter", "Cbm_Right-Cerebellum-White-Matter"),
-        ("Cbm_Left-Cerebellum-Cortex", "Cbm_Right-Cerebellum-Cortex"),
+        #("Cbm_Left-Cerebellum-White-Matter", "Cbm_Right-Cerebellum-White-Matter"),
+        #("Cbm_Left-Cerebellum-Cortex", "Cbm_Right-Cerebellum-Cortex"),
         ("Cbm_Left_I_IV", "Cbm_Right_I_IV"),
         ("Cbm_Left_V", "Cbm_Right_V"),
         ("Cbm_Left_VI", "Cbm_Right_VI"),
